@@ -33,20 +33,21 @@ When you are done with testing, you can cleanup `resolv.conf` or wait till this 
 
 ### Installing the htsget-rs helm chart
 
-Run `helm install charts/htsget-rs` to install the system with the `htsget-rs` prefix.
+Run `helm install htsget-rs charts/htsget-rs` to install the  `htsget-rs` chart.
 
 You can use the `kubectl get pods` command to see the kubernetes pods come online. After that, you can verify the deployment with `curl -s http://htsget.local/reads/service-info`.
 
 
 ### Testing with sda-download
 
-Start by checking out [this branch}(https://github.com/GenomicDataInfrastructure/starter-kit-storage-and-interfaces/tree/feat/reencrypt-header) of the GDI starter-kit-storage&interfaces repository. This branch contains the re-encryption of file headers in the sda-download service. Then run:
+Start by checking out [this branch}(https://github.com/GenomicDataInfrastructure/starter-kit-storage-and-interfaces/tree/featute/test-htsget-reencrypt) of the GDI starter-kit-storage&interfaces repository. This branch contains the re-encryption of file headers in the sda-download service.
+Follow the instructions in the README of that repository to set-up all necessary configuration files. Then run:
 ```sh
 docker compose -f docker-compose-demo.yml up
 ```
-and wait until the `data_loader` comletes with `exit 0`.
+and wait until the `data_loader` completes with `exit 0`.
 
-Then paste the following into charts/htsget-rs/configmap.yaml:
+Then paste the following into charts/htsget-rs/templates/configmap.yaml:
 ```ini
 ticket_server_addr = "0.0.0.0:8080"
 ticket_server_cors_allow_origins = "All"
