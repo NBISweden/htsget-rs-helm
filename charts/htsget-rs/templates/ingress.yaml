@@ -18,10 +18,19 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "htsget-rs.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- if eq "nginx" .Values.ingress.ingressClassName }}
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    nginx.ingress.kubernetes.io/backend-protocol: "{{ ternary "HTTPS" "HTTP" .Values.tls.enabled }}"
+    {{- end }}
+    {{- if .Values.ingress.clusterIssuer }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer | quote }}
+    {{- else if .Values.ingress.issuer }}
+    cert-manager.io/issuer: {{ .Values.ingress.issuer | quote }}
+    {{- end }}
+    {{- if .Values.ingress.annotations }}
+    {{ toYaml .Values.ingress.annotations | indent 4 }}
+    {{- end }}
 spec:
   {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
   ingressClassName: {{ .Values.ingress.className }}
