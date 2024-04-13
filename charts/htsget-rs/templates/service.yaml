@@ -8,8 +8,8 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: htsget
       protocol: TCP
-      name: http
+      name: htsget
   selector:
     {{- include "htsget-rs.selectorLabels" . | nindent 4 }}

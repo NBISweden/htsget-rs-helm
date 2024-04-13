@@ -44,7 +44,7 @@ spec:
           command: ["htsget-actix"]
           args: ["--config", "/config/download-config.toml"]
           ports:
-            - name: http
+            - name: htsget
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           livenessProbe:
