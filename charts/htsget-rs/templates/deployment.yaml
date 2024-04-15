@@ -61,6 +61,17 @@ spec:
         - name: config
           configMap:
             name: {{ template "htsget-rs.fullname" . }}-config
+      {{- if and .Values.htsget.c4gh.privateKey .Values.htsget.c4gh.publicKey }}
+        - name: c4gh
+          secret:
+            defaultMode: 0440
+            secretName: {{ required "A secret for the c4gh key is required" .Values.c4gh.secretName }}
+            items:
+            - key: {{ .Values.htsget.c4gh.privateKey | quote }}
+              path: {{ .Values.htsget.c4gh.privateKey | quote }}
+            - key: {{ .Values.htsget.c4gh.publicKey | quote }}
+              path: {{ .Values.htsget.c4gh.publicKey | quote }}
+      {{- end }}
       {{- if .Values.tls.enabled }}
         - name: tls
         {{- if or .Values.tls.clusterIssuer .Values.tls.issuer }}

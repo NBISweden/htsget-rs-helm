@@ -108,6 +108,8 @@ volumeMounts:
 - name: config
   mountPath: "/config"
   readOnly: true
+- name: c4gh
+  mountPath: "/c4gh"
 - name: tls
   mountPath: "/tls"
 
@@ -126,6 +128,10 @@ tls:
   clusterIssuer: ""
   secretName: ""
 
+c4gh:
+    # The secret name that contains the c4gh keys
+    secretName: "c4gh"
+
 # htsget-rs specific configuration
 htsget:
   # if set to true, responseUrl must point to /s3-encrypted endpoint
@@ -138,6 +144,11 @@ htsget:
   # Header and file url
   # file: "http://host.minikube.internal:8443/s3-encrypted/"
   file: "http://host.minikube.internal:8443/s3/"
+  # c4gh keys for server if ommited, c4gh keys will be generated on the fly
+  c4gh:
+    privateKey: ""
+    publicKey: ""
+    passPhrase: ""
   tls:
     # Set client authentication for url storage (pem format)
     urlStorage:
@@ -150,6 +161,7 @@ htsget:
       key: ""
       cert: ""
   # Path where the sensitive files can be found.
+  c4ghPath: "c4gh"
   tlsPath: "tls"
 
 # For development purposes it is also possible to pass htsget-rs specific configuration by pasting the
