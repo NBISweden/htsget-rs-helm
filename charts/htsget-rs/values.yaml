@@ -13,7 +13,7 @@ imagePullSecrets: [] #
 nameOverride: ""     #
 fullnameOverride: "" #
 
-serviceAccount: #TBD#
+serviceAccount:
   # Specifies whether a service account should be created
   create: true
   # Automatically mount a ServiceAccount's API credentials?
@@ -106,7 +106,7 @@ volumes: []
 # volumeMounts: []
 volumeMounts:
 - name: config
-  mountPath: "/config/"
+  mountPath: "/config"
   readOnly: true
 
 nodeSelector: {}
@@ -122,3 +122,32 @@ tls:
   enabled: true
   issuer: ""
   clusterIssuer: ""
+
+# htsget-rs specific configuration
+htsget:
+  # if set to true, responseUrl must point to /s3-encrypted endpoint
+  sendEncryptedToClient: false
+  # The url that will be used for the client's url
+  # responseUrl: "http://host.minikube.internal:8443/s3-enrcypted/"
+  responseUrl: "http://host.minikube.internal:8443/s3/"
+  forwardHeaders: true
+  index: "http://host.minikube.internal:8443/s3/"
+  # Header and file url
+  # file: "http://host.minikube.internal:8443/s3-encrypted/"
+  file: "http://host.minikube.internal:8443/s3/"
+
+# For development purposes it is also possible to pass htsget-rs specific configuration by pasting the
+# contents of the toml config file (https://github.com/umccr/htsget-rs/tree/crypt4gh/htsget-config) below.
+# Use nident 2. (experimental)
+configMapData: |-
+#   ticket_server_addr = "0.0.0.0:8080"
+#   ticket_server_cors_allow_origins = "All"
+#   [[resolvers]]
+#   regex = "(.*)"
+#   substitution_string = "$1"
+#   [resolvers.storage]
+#   response_url = ""
+#   forward_headers = true
+#   [resolvers.storage.endpoints]
+#   index = ""
+#   file = ""

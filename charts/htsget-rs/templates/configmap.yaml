@@ -4,7 +4,10 @@ metadata:
   name: {{ template "htsget-rs.fullname" . }}-config
 data:
   download-config.toml: |-
-    ticket_server_addr = "0.0.0.0:8080"
+{{- if .Values.configMapData }}
+{{- .Values.configMapData | nindent 4 }}
+{{- else }}
+    ticket_server_addr = "127.0.0.1:8080"
     ticket_server_cors_allow_origins = "All"
 
     [[resolvers]]
@@ -12,19 +15,14 @@ data:
     substitution_string = "$1"
 
     [resolvers.object_type]
-    # if set to true, response_url must point to /s3-encrypted endpoint
-    send_encrypted_to_client = false
-    #private_key = "/config/server-rs.sec.pem"
-    #public_key = "/config/server-rs.pub.pem"
+    send_encrypted_to_client = {{ .Values.htsget.sendEncryptedToClient }}
 
     [resolvers.storage]
-    # The url that will be used for the client's url
-    # response_url = "http://host.minikube.internal:8443/s3-enrcypted/"
-    response_url = "http://host.minikube.internal:8443/s3/"
-    forward_headers = true
+    response_url = {{ .Values.htsget.responseUrl | quote }}
+    forward_headers = {{ .Values.htsget.forwardHeaders }}
 
     [resolvers.storage.endpoints]
-    index = "http://host.minikube.internal:8443/s3/"
-    # Header and file url
-    file = "http://host.minikube.internal:8443/s3-encrypted/"
-    # file = "http://host.minikube.internal:8443/s3/"
+    index = {{ .Values.htsget.index | quote }}
+    file = {{ .Values.htsget.file | quote }}
+
+{{- end }}
