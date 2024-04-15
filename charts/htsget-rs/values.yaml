@@ -129,6 +129,8 @@ htsget:
       cert: ""
       # Set root certificates
       rootStore: ""
+      # Set the secret name that contains the client certificates
+      secretName: ""
     # Set server authentication (experimental)
     ticketServer:
       key: ""
