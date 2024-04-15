@@ -48,15 +48,33 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
+            httpGet:
+              path: /reads/service-info
+              port: htsget
+              scheme: {{ ternary "HTTPS" "HTTP" ( .Values.tls.enabled) }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
           readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
+            httpGet:
+              path: /reads/service-info
+              port: htsget
+              scheme: {{ ternary "HTTPS" "HTTP" ( .Values.tls.enabled) }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
           volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            - name: config
+              mountPath: /config
+              readOnly: true
+            {{- if and .Values.htsget.c4gh.privateKey .Values.htsget.c4gh.publicKey }}
+            - name: c4gh
+              mountPath: /{{ .Values.htsget.c4ghPath }}
+            {{- end }}
+            {{- if .Values.tls.enabled}}
+            - name: tls
+              mountPath: /{{ .Values.htsget.tlsPath }}
+            {{- end }}
       volumes:
         - name: config
           configMap:
