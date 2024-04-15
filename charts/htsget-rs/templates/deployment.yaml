@@ -61,6 +61,18 @@ spec:
         - name: config
           configMap:
             name: {{ template "htsget-rs.fullname" . }}-config
+      {{- if .Values.tls.enabled }}
+        - name: tls
+        {{- if or .Values.tls.clusterIssuer .Values.tls.issuer }}
+          secret:
+            defaultMode: 0440
+            secretName: {{ template "htsget-rs.fullname" . }}-certs
+        {{- else }}
+          secret:
+            defaultMode: 0440
+            secretName: {{ required "A certificate issuer or a TLS secret name is required" .Values.tls.secretName }}
+        {{- end }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

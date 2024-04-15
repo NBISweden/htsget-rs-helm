@@ -10,6 +10,11 @@ data:
     ticket_server_addr = "127.0.0.1:8080"
     ticket_server_cors_allow_origins = "All"
 
+  {{- if and .Values.htsget.tls.ticketServer.key .Values.htsget.tls.ticketServer.cert }}
+    ticket_server_tls.key = {{ printf "/%s/%s" ( .Values.htsget.tlsPath ) ( .Values.htsget.tls.ticketServer.key ) | quote }}
+    ticket_server_tls.cert = {{ printf "/%s/%s" ( .Values.htsget.tlsPath ) ( .Values.htsget.tls.ticketServer.cert ) | quote }}
+  {{- end }}
+
     [[resolvers]]
     regex = "(.*)"
     substitution_string = "$1"
@@ -24,5 +29,13 @@ data:
     [resolvers.storage.endpoints]
     index = {{ .Values.htsget.index | quote }}
     file = {{ .Values.htsget.file | quote }}
+
+  {{- if and .Values.htsget.tls.urlStorage.key .Values.htsget.tls.urlStorage.cert }}
+    tls.key = {{ printf "/%s/%s" ( .Values.htsget.tlsPath ) ( .Values.htsget.tls.urlStorage.key ) | quote }}
+    tls.cert = {{ printf "/%s/%s" ( .Values.htsget.tlsPath ) ( .Values.htsget.tls.urlStorage.cert ) | quote }}
+  {{- end }}
+  {{- if .Values.htsget.tls.urlStorage.rootStore }}
+    tls.root_store = {{ printf "/%s/%s" ( .Values.htsget.tlsPath ) ( .Values.htsget.tls.urlStorage.rootStore ) | quote }}
+  {{- end }}
 
 {{- end }}

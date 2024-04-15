@@ -108,6 +108,8 @@ volumeMounts:
 - name: config
   mountPath: "/config"
   readOnly: true
+- name: tls
+  mountPath: "/tls"
 
 nodeSelector: {}
 
@@ -122,6 +124,7 @@ tls:
   enabled: true
   issuer: ""
   clusterIssuer: ""
+  secretName: ""
 
 # htsget-rs specific configuration
 htsget:
@@ -135,6 +138,19 @@ htsget:
   # Header and file url
   # file: "http://host.minikube.internal:8443/s3-encrypted/"
   file: "http://host.minikube.internal:8443/s3/"
+  tls:
+    # Set client authentication for url storage (pem format)
+    urlStorage:
+      key: "tls.key"
+      cert: "tls.crt"
+      # Set root certificates
+      rootStore: "ca.crt"
+    # Set server authentication (experimental)
+    ticketServer:
+      key: ""
+      cert: ""
+  # Path where the sensitive files can be found.
+  tlsPath: "tls"
 
 # For development purposes it is also possible to pass htsget-rs specific configuration by pasting the
 # contents of the toml config file (https://github.com/umccr/htsget-rs/tree/crypt4gh/htsget-config) below.
