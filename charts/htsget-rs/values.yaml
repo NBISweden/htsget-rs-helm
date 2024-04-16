@@ -108,7 +108,7 @@ c4gh:
 # htsget-rs specific configuration
 htsget:
   # if set to true, responseUrl must point to /s3-encrypted endpoint
-  sendEncryptedToClient: false
+  sendEncryptedToClient: false # set to true if c4gh encryption is used
   # The url that will be used for the client's url
   # responseUrl: "http://host.minikube.internal:8443/s3-enrcypted/"
   responseUrl: "http://host.minikube.internal:8443/s3/"

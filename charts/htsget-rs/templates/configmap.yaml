@@ -19,11 +19,13 @@ data:
     regex = "(.*)"
     substitution_string = "$1"
 
+  {{- if .Values.htsget.sendEncryptedToClient }}
     [resolvers.object_type]
     send_encrypted_to_client = {{ .Values.htsget.sendEncryptedToClient }}
-  {{- if and .Values.htsget.c4gh.privateKey .Values.htsget.c4gh.publicKey }}
+    {{- if and .Values.htsget.c4gh.privateKey .Values.htsget.c4gh.publicKey }}
     private_key = {{ printf "/%s/%s" ( .Values.htsget.c4ghPath ) ( .Values.htsget.c4gh.privateKey ) | quote }}
     public_key = {{ printf "/%s/%s" ( .Values.htsget.c4ghPath ) ( .Values.htsget.c4gh.publicKey ) | quote }}
+    {{- end }}
   {{- end }}
 
     [resolvers.storage]
