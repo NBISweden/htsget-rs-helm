@@ -107,21 +107,28 @@ c4gh:
 
 # htsget-rs specific configuration
 htsget:
+  # Logging levels and formatting (inherited by rust)
+  rustLog: "info" # debug, trace
+  formattingStyle: "Pretty" # Full, Compact, Pretty, Json
+
   # if set to true, responseUrl must point to /s3-encrypted endpoint
   sendEncryptedToClient: false # set to true if c4gh encryption is used
   # The url that will be used for the client's url
   # responseUrl: "http://host.minikube.internal:8443/s3-enrcypted/"
   responseUrl: "http://host.minikube.internal:8443/s3/"
   forwardHeaders: true
-  index: "http://host.minikube.internal:8443/s3/"
+
   # Header and file url
+  index: "http://host.minikube.internal:8443/s3/"
   # file: "http://host.minikube.internal:8443/s3-encrypted/"
   file: "http://host.minikube.internal:8443/s3/"
+
   # c4gh keys for server, if ommited c4gh keys will be generated on the fly
   c4gh:
     privateKey: ""
     publicKey: ""
     passPhrase: ""
+
   tls:
     # Set client authentication for url storage (pem format)
     urlStorage:
@@ -135,6 +142,7 @@ htsget:
     ticketServer:
       key: ""
       cert: ""
+
   # Path where the sensitive files can be found.
   c4ghPath: "c4gh"
   tlsPath: "tls"

@@ -43,6 +43,11 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["htsget-actix"]
           args: ["--config", "/config/download-config.toml"]
+          env:
+          - name: FORMATTING_STYLE
+            value: {{ default "Full" .Values.htsget.formattingStyle }}
+          - name: RUST_LOG
+            value: {{ default "info" .Values.htsget.rustLog }}
           ports:
             - name: htsget
               containerPort: {{ .Values.service.port }}
