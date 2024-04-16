@@ -47,10 +47,11 @@ docker compose -f docker-compose-demo.yml up
 ```
 and wait until the `data_loader` completes with `exit 0`.
 
-Then paste the following into charts/htsget-rs/templates/configmap.yaml:
+Then remove the commented block and paste the following under `configMapData: |-` in `charts/htsget-rs/values.yaml`:
 ```ini
 ticket_server_addr = "0.0.0.0:8080"
 ticket_server_cors_allow_origins = "All"
+
 [[resolvers]]
 regex = "(.*)"
 substitution_string = "$1"
@@ -65,7 +66,7 @@ index = "http://host.minikube.internal:8443/s3/"
 # Header and file url
 file = "http://host.minikube.internal:8443/s3/"
 ```
-and run `helm install charts/htsget-rs`.
+and run `helm install htsget-rs charts/htsget-rs`.
 
 After the pod is Ready, you should be able to run the following commands successfully:
 ```sh
@@ -73,8 +74,40 @@ token=$(curl -s -k https://localhost:8080/tokens | jq -r '.[0]')
 ```
 to get a valid token and then
 ```sh
-curl -v -H "Authorization: Bearer $token" -k http://htsget.local/reads/DATASET0001/htsnexus_test_NA12878
+curl -v -H "Authorization: Bearer $token" http://htsget.local/reads/DATASET0001/htsnexus_test_NA12878
 ```
 to get the htsget response using transcactions with unencrypted files.
 
 The default configuration in the `toml` file is for use with encrypted file transactions and is the one that should be deployed in production-like environments.
+
+### Testing TLS features
+
+This step requires that you have a cert-manager issuer installed in the cluster. You can follow the instructions [here](https://cert-manager.io/docs/installation/kubernetes/) for this. You can also use the following command to install the necessary resources:
+```sh
+kubectl apply -f .github/integration/scripts/charts/dependencies.yaml
+```
+
+To test TLS features for the ingress, you can use the following command to install the charts:
+```sh
+helm install htsget charts/htsget-rs/ --set ingress.clusterIssuer=cert-issuer
+```
+After the pod is Ready, you should be able to run the following command
+```sh
+curl -s -k -v https://htsget.local/reads/service-info
+```
+Since this test uses a self-signed certificate, you will need to use the `-k` flag to ignore the certificate verification.
+
+To test TLS features for the htsget-rs service:
+First comment out the `tls` block of the `ingress` block in the `values.yaml` file. Then you can use the following command to install the charts:
+```sh
+helm install htsget charts/htsget-rs/ --set tls.clusterIssuer=cert-issuer --set tls.enabled=true --set htsget.tls.ticketServer.key="tls.key" --set htsget.tls.ticketServer.cert="tls.crt"
+```
+After the pod is Ready, you should be able to run the following command
+```sh
+kubectl run -ti curl --image=curlimages/curl -- sh
+```
+and within this pod, run the following command
+```sh
+curl -k https://htsget-htsget-rs:8080/reads/service-info
+```
+to get the htsget response.
