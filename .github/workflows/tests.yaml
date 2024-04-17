@@ -38,7 +38,7 @@ jobs:
         run: bash .github/integration/scripts/dependencies.sh
         shell: bash
 
-      - name: Deploy pipeline
+      - name: Deploy htsget
         run: bash .github/integration/scripts/deploy_charts.sh ${{matrix.tls}}
         shell: bash
 
