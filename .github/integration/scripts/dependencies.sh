@@ -42,6 +42,5 @@ yq -i '
 .htsget.tls.urlStorage.cert = "tls.crt" |
 .htsget.tls.urlStorage.rootStore = "ca.crt" |
 .htsget.tls.ticketServer.key = "tls.key" |
-.htsget.tls.ticketServer.cert = "tls.crt" |
-.releasetest.secrets.accessToken = strenv(TEST_TOKEN)
+.htsget.tls.ticketServer.cert = "tls.crt"
 ' .github/integration/scripts/values.yaml
