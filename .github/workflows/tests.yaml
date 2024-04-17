@@ -1,0 +1,62 @@
+name: Test deployment
+
+on:
+  pull_request:
+    paths-ignore:
+      - ".github/workflows/**"
+      - ".gitignore"
+      - "**/*.md"
+      - ".github/dependabot.yaml"
+      - "charts/**"
+
+jobs:
+  chart:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["1.28", "1.29"]
+        tls: ["true", "false"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3.5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialise k3d
+        id: initK3D
+        run: bash .github/integration/scripts/k3d.sh ${{matrix.version}}
+        shell: bash
+      - name: debug
+        if: steps.initK3D.outcome == 'failure'
+        run: k3d version list k3s | grep ${{matrix.version}}
+        shell: bash
+
+      - name: Deploy external services
+        run: bash .github/integration/scripts/dependencies.sh
+        shell: bash
+
+      - name: Deploy pipeline
+        run: bash .github/integration/scripts/deploy_charts.sh ${{matrix.tls}}
+        shell: bash
+
+      - name: Check deployment
+        run: |
+          sleep 30
+            if [ ! $(kubectl get pods -l role="htsget" -o=jsonpath='{.items[*].status.containerStatuses[0].ready}' | grep true) ]; then
+              echo "htsget is not ready after 30s, exiting"
+              exit 1
+            fi
+
+      - name: test
+        if: always()
+        run: |
+          kubectl get pods
+          sleep 1
+            echo "## describe htsget" && kubectl describe pod -l role="htsget"
+            sleep 1
+            echo "## logs htsget" && kubectl logs -l role="htsget"
+            sleep 1
+        shell: bash
