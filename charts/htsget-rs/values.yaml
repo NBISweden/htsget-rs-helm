@@ -27,17 +27,19 @@ serviceAccount:
 podAnnotations: {}
 podLabels: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext:
+containerSecurityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop:
     - ALL
+  privileged: false
+
+podSecurityContext:
+  fsGroup: 1000
   runAsNonRoot: true
+  runAsUser: 1000
   seccompProfile:
-            type: "RuntimeDefault"
+    type: "RuntimeDefault"
 
 service:
   type: ClusterIP
