@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         version: ["1.28", "1.29"]
-        tls: ["true", "false"]
+        tls: ["false","true"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

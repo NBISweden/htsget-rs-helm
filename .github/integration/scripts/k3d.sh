@@ -2,7 +2,6 @@
 set -ex
 
 k8s="$(curl -L -s https://dl.k8s.io/release/stable.txt)"
-k8s="v.1.29.3"
 
 curl -s -L https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | sudo bash
 
