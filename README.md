@@ -84,10 +84,16 @@ The default configuration in the `toml` file is for use with encrypted file tran
 
 This step requires that you have a cert-manager issuer installed in the cluster. You can follow the instructions [here](https://cert-manager.io/docs/installation/kubernetes/) for this. You can also use the following command to install the necessary resources:
 ```sh
-kubectl apply -f .github/integration/scripts/charts/dependencies.yaml
+kubectl apply -f .github/integration/scripts/dependencies.yaml
 ```
 
-To test TLS features for the ingress, you can use the following command to install the charts:
+To test TLS features for the ingress, first remove the empty array from the `ingress.tls` key and then uncomment the following block:
+```yaml
+#  - secretName: htsget.local-tls
+#    hosts:
+#      - htsget.local
+```
+Now the following command can me used to install the charts:
 ```sh
 helm install htsget charts/htsget-rs/ --set ingress.clusterIssuer=cert-issuer
 ```
