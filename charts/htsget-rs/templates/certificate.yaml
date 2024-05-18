@@ -17,11 +17,9 @@ spec:
   commonName: {{ template "htsget-rs.fullname" . }}
   isCA: false
   privateKey:
-    algorithm: ECDSA
-    size: 256
+    algorithm: Ed25519
   usages:
     - server auth
-    - client auth
   # At least one of a DNS Name, URI, or IP address is required.
   dnsNames:
     - {{ template "htsget-rs.fullname" . }}
