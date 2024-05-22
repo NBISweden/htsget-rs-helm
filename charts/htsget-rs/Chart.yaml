@@ -1,13 +1,15 @@
 apiVersion: v2
 name: htsget-rs
-description: A Helm chart for Kubernetes
-
-# Application charts are a collection of templates that can be packaged into versioned archives
-# to be deployed.
-type: application
-
 # This is the chart version.
 version: 0.1.0
+# app version corresponds to the default image tag
+appVersion: "20240430"
 
-# corresponds to the default image tag
-appVersion: "20240417"
+description: A server implementation of the htsget protocol for bioinformatics in Rust.
+home: https://github.com/umccr/htsget-rs/
+sources:
+  - https://github.com/umccr/htsget-rs/
+  - https://github.com/NBISweden/htsget-rs-helm
+
+type: application
+
