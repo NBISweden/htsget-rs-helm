@@ -19,7 +19,7 @@ metadata:
   labels:
     {{- include "htsget-rs.labels" . | nindent 4 }}
   annotations:
-    {{- if eq "nginx" .Values.ingress.ingressClassName }}
+    {{- if eq "nginx" .Values.ingress.className }}
     nginx.ingress.kubernetes.io/rewrite-target: "/"
     nginx.ingress.kubernetes.io/backend-protocol: "{{ ternary "HTTPS" "HTTP" .Values.tls.enabled }}"
     {{- end }}
