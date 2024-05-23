@@ -39,7 +39,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["htsget-actix"]
@@ -59,13 +59,13 @@ spec:
               port: htsget
               scheme: {{ ternary "HTTPS" "HTTP" ( .Values.tls.enabled) }}
             initialDelaySeconds: 15
-            periodSeconds: 10
+            periodSeconds: 20
           readinessProbe:
             httpGet:
               path: /reads/service-info
               port: htsget
               scheme: {{ ternary "HTTPS" "HTTP" ( .Values.tls.enabled) }}
-            initialDelaySeconds: 15
+            initialDelaySeconds: 5
             periodSeconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -75,15 +75,15 @@ spec:
               readOnly: true
             {{- if and .Values.htsget.c4gh.privateKey .Values.htsget.c4gh.publicKey }}
             - name: c4gh
-              mountPath: /{{ .Values.htsget.c4ghPath }}
+              mountPath: /{{ required "A path for the c4gh keys is required" .Values.htsget.c4ghPath }}
             {{- end }}
             {{- if .Values.tls.enabled}}
             - name: tls
-              mountPath: /{{ .Values.htsget.tlsPath }}
+              mountPath: /{{ required "A path for tls certificates is required" .Values.htsget.tlsPath }}
             {{- end }}
             {{- if and .Values.htsget.tls.urlStorage.cert .Values.htsget.tls.urlStorage.key }}
             - name: client-certs
-              mountPath: /config/client-{{ .Values.htsget.tlsPath }}
+              mountPath: /config/client-{{ required "A path for tls certificates is required" .Values.htsget.tlsPath }}
             {{- end }}
       volumes:
         - name: config
