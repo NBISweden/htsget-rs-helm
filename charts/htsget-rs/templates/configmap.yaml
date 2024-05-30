@@ -4,46 +4,4 @@ metadata:
   name: {{ template "htsget-rs.fullname" . }}-config
 data:
   download-config.toml: |-
-{{- if .Values.configMapData }}
-{{- .Values.configMapData | nindent 4 }}
-{{- else }}
-    ticket_server_addr = "127.0.0.1:8080"
-    ticket_server_cors_allow_origins = "All"
-
-  {{- if .Values.tls.enabled }}
-  {{- if and .Values.htsget.tls.ticketServer.key .Values.htsget.tls.ticketServer.cert }}
-    ticket_server_tls.key = {{ printf "/%s/%s" ( .Values.htsget.tlsPath ) ( .Values.htsget.tls.ticketServer.key ) | quote }}
-    ticket_server_tls.cert = {{ printf "/%s/%s" ( .Values.htsget.tlsPath ) ( .Values.htsget.tls.ticketServer.cert ) | quote }}
-  {{- end }}
-  {{- end }}
-
-    [[resolvers]]
-    regex = "(.*)"
-    substitution_string = "$1"
-
-  {{- if .Values.htsget.sendEncryptedToClient }}
-    [resolvers.object_type]
-    send_encrypted_to_client = {{ .Values.htsget.sendEncryptedToClient }}
-    {{- if and .Values.htsget.c4gh.privateKey .Values.htsget.c4gh.publicKey }}
-    private_key = {{ printf "/%s/%s" ( .Values.htsget.c4ghPath ) ( .Values.htsget.c4gh.privateKey ) | quote }}
-    public_key = {{ printf "/%s/%s" ( .Values.htsget.c4ghPath ) ( .Values.htsget.c4gh.publicKey ) | quote }}
-    {{- end }}
-  {{- end }}
-
-    [resolvers.storage]
-    response_url = {{ .Values.htsget.responseUrl | quote }}
-    forward_headers = {{ .Values.htsget.forwardHeaders }}
-
-    [resolvers.storage.endpoints]
-    index = {{ .Values.htsget.index | quote }}
-    file = {{ .Values.htsget.file | quote }}
-
-  {{- if and .Values.htsget.tls.urlStorage.key .Values.htsget.tls.urlStorage.cert }}
-    tls.key = {{ printf "/config/client-%s/%s" ( .Values.htsget.tlsPath ) ( .Values.htsget.tls.urlStorage.key ) | quote }}
-    tls.cert = {{ printf "/config/client-%s/%s" ( .Values.htsget.tlsPath ) ( .Values.htsget.tls.urlStorage.cert ) | quote }}
-  {{- end }}
-  {{- if .Values.htsget.tls.urlStorage.rootStore }}
-    tls.root_store = {{ printf "/config/client-%s/%s" ( .Values.htsget.tlsPath ) ( .Values.htsget.tls.urlStorage.rootStore ) | quote }}
-  {{- end }}
-
-{{- end }}
+{{- required "Htsget-rs configuration is required" .Values.configMapData | nindent 4 }}

@@ -35,12 +35,8 @@ kubectl apply -f .github/integration/scripts/dependencies.yaml
 
 ## update values file with all credentials
 yq -i '
-.htsget.c4gh.publicKey = "c4gh.pub.pem" |
-.htsget.c4gh.privateKey = "c4gh.sec.pem" |
-.htsget.c4gh.passPhrase = strenv(C4GHPASSPHRASE) |
-.htsget.tls.urlStorage.key = "tls.key" |
-.htsget.tls.urlStorage.cert = "tls.crt" |
-.htsget.tls.urlStorage.rootStore = "ca.crt" |
-.htsget.tls.ticketServer.key = "tls.key" |
-.htsget.tls.ticketServer.cert = "tls.crt"
+.c4gh.predefined = true |
+.c4gh.secretName = "c4gh" |
+.htsget.c4ghPath = "/c4gh" |
+.htsget.tlsPath = "/tls"
 ' .github/integration/scripts/values.yaml

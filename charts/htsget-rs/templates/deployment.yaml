@@ -73,32 +73,35 @@ spec:
             - name: config
               mountPath: /config
               readOnly: true
-            {{- if and .Values.htsget.c4gh.privateKey .Values.htsget.c4gh.publicKey }}
+            {{- if .Values.c4gh.predefined }}
             - name: c4gh
-              mountPath: /{{ required "A path for the c4gh keys is required" .Values.htsget.c4ghPath }}
+              mountPath: {{ required "A path for c4gh keys is required" .Values.htsget.c4ghPath | quote}}
+              readOnly: true
             {{- end }}
             {{- if .Values.tls.enabled}}
             - name: tls
-              mountPath: /{{ required "A path for tls certificates is required" .Values.htsget.tlsPath }}
+              mountPath: {{ required "A path for ticket server TLS certificates is required" .Values.htsget.tlsPath }}
+              readOnly: true
             {{- end }}
-            {{- if and .Values.htsget.tls.urlStorage.cert .Values.htsget.tls.urlStorage.key }}
+            {{- if .Values.tlsClient.enabled }}
             - name: client-certs
-              mountPath: /config/client-{{ required "A path for tls certificates is required" .Values.htsget.tlsPath }}
+              mountPath: {{ "A path for client TLS certificates is required" .Values.htsget.tlsPathClient | quote}}
+              readOnly: true
+            {{- end }}
+            {{- if .Values.tlsDataServer.enabled }}
+            - name: data-server-certs
+              mountPath: {{ "A path for data server TLS certificates is required" .Values.htsget.tlsPathDataServer | quote}}
+              readOnly: true
             {{- end }}
       volumes:
         - name: config
           configMap:
             name: {{ template "htsget-rs.fullname" . }}-config
-      {{- if and .Values.htsget.c4gh.privateKey .Values.htsget.c4gh.publicKey }}
+      {{- if .Values.c4gh.predefined }}
         - name: c4gh
           secret:
             defaultMode: 0440
             secretName: {{ required "A secret for the c4gh key is required" .Values.c4gh.secretName }}
-            items:
-            - key: {{ .Values.htsget.c4gh.privateKey | quote }}
-              path: {{ .Values.htsget.c4gh.privateKey | quote }}
-            - key: {{ .Values.htsget.c4gh.publicKey | quote }}
-              path: {{ .Values.htsget.c4gh.publicKey | quote }}
       {{- end }}
       {{- if .Values.tls.enabled }}
         - name: tls
@@ -112,17 +115,17 @@ spec:
             secretName: {{ required "A certificate issuer or a TLS secret name is required" .Values.tls.secretName }}
         {{- end }}
       {{- end }}
-      {{- if and .Values.htsget.tls.urlStorage.cert .Values.htsget.tls.urlStorage.key }}
+      {{- if .Values.tlsClient.enabled }}
         - name: client-certs
-        {{- if or .Values.tls.clusterIssuer .Values.tls.issuer }}
           secret:
             defaultMode: 0440
-            secretName: {{ template "htsget-rs.fullname" . }}-certs
-        {{- else }}
+            secretName: {{ required "A client TLS secret name is required" .Values.tlsClient.secretName }}
+      {{- end }}
+      {{- if .Values.tlsDataServer.enabled }}
+        - name: data-server-certs
           secret:
             defaultMode: 0440
-            secretName: {{ required "A certificate issuer or a TLS secret name is required for the client" .Values.htsget.tls.urlStorage.secretName }}
-        {{- end }}
+            secretName: {{ required "A TLS secret name is required for the data server" .Values.tlsDataServer.secretName }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

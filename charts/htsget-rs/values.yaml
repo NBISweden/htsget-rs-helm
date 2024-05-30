@@ -51,6 +51,7 @@ ingress:
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
+    # cert-manager.io/cluster-issuer:
   hosts:
     - host: htsget.local
       paths:
@@ -81,7 +82,7 @@ resources: {}
 autoscaling:
   enabled: false
   minReplicas: 1
-  maxReplicas: 100
+  maxReplicas: 20
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
@@ -91,19 +92,30 @@ tolerations: []
 
 affinity: {}
 
-# If no dependency services uses TLS, e.g. sda-download,
-# TLS can be disabled by setting enabled to false.
+# The application's ticket server TLS can be disabled by setting enabled to false.
 # Not to be used in production but handy for testing.
 tls:
-  enabled: false
+  enabled: true
   issuer: ""
   clusterIssuer: ""
   secretName: ""
 
 c4gh:
-    # The secret name that contains the server c4gh keys.
-    # Required if htsget will use a predefined c4gh key-pair.
-    secretName: ""
+  # Set to true if htsget will use a predefined c4gh key-pair instead
+  # of creating one on-the-fly when handling encrypted data
+  predefined: false
+  # The name for the secret containing c4gh keys.
+  secretName: ""
+
+# Enable data server TLS
+tlsDataServer:
+  enabled: false
+  secretName: ""
+
+# Enable client TLS for the urlstorage backend (experimental feature)
+tlsClient:
+  enabled: false
+  secretName: ""
 
 # htsget-rs specific configuration.
 htsget:
@@ -111,54 +123,53 @@ htsget:
   rustLog: "info" # debug, trace
   formattingStyle: "Pretty" # Full, Compact, Pretty, Json
 
-  # If configMapData is set (see below), the following values will be superseded.
-  #
-  # if set to true, responseUrl must point to /s3-encrypted endpoint
-  sendEncryptedToClient: false # set to true if c4gh encryption is used
-  # The url that will be used for the client's url
-  responseUrl: ""
-  forwardHeaders: true
-
-  # Header and file url
-  index: ""
-  file: ""
-
-  # c4gh keys for server, if ommited c4gh keys will be generated on the fly
-  c4gh:
-    privateKey: ""
-    publicKey: ""
-    passPhrase: ""
-
-  tls:
-    # Set client authentication for url storage (experimental feature)
-    urlStorage:
-      key: ""
-      cert: ""
-      # Set root certificates
-      rootStore: ""
-      # Set the secret name that contains the client certificates
-      secretName: ""
-    # Set server authentication
-    ticketServer:
-      key: ""
-      cert: ""
-
   # Path where the sensitive files can be found.
+  # These should match the path in the htsget config below.
   c4ghPath: ""
-  tlsPath: ""
+  tlsPath: "/tls"
+  tlsPathDataServer: ""
+  tlsPathClient: ""
 
-# Alternatively, the htsget-rs server can be configured by placing the contents of the toml config file below (keep nindent 2).
-# This allows for all of the available configuration options (https://github.com/umccr/htsget-rs/tree/crypt4gh/htsget-config)
-# to be set but requires any necessary k8s resources such as volumes, secrets, etc. to be created manually.
+# The htsget-rs server is configured by placing the contents of the toml config file below (keep nindent 2).
+# All of the available configuration options (https://github.com/umccr/htsget-rs/tree/crypt4gh/htsget-config)
+# can be set this way. Paths to sensitive files like TLS certicifaces or c4gh keys need to be set above and match
+# those used below. The names of the files that are referenced below should be the same as the ones in the respective
+# secrets whose names can be set above.
+# Below is an example of a htsget-rs config file utilizing a url_storage.
 configMapData: |-
-#   ticket_server_addr = "0.0.0.0:8080"
-#   ticket_server_cors_allow_origins = "All"
-#   [[resolvers]]
-#   regex = "(.*)"
-#   substitution_string = "$1"
-#   [resolvers.storage]
-#   response_url = ""
-#   forward_headers = true
-#   [resolvers.storage.endpoints]
-#   index = ""
-#   file = ""
+  # Information displayed by the /info endpoint
+  name = "htsget.example"
+  version = ""
+  organization_name = "Example Organization"
+  organization_url = "http://example.com"
+  contact_url = "http://example.com"
+  documentation_url = "https://github.com/umccr/htsget-rs"
+
+  # The ticket server configuration
+  ticket_server_addr = "127.0.0.1:8080"
+  ticket_server_cors_allow_origins = "All"
+  ticket_server_tls.key = "/tls/tls.key"
+  ticket_server_tls.cert = "/tls/tls.crt"
+
+  # disable the internal data server
+  data_server_enabled = false
+
+  [[resolvers]]
+  regex = "(.*)"
+  substitution_string = "$1"
+
+  [resolvers.object_type]
+  # if set to true, responseUrl must point to an endpoint serving encrypted data
+  send_encrypted_to_client = false
+
+  [resolvers.storage]
+  # The url that will be used for the client's url
+  response_url = "http://example.com"
+  forward_headers = true
+  # if set to true, the client will not check the certificate validity
+  danger_accept_invalid_certs = true
+
+  [resolvers.storage.endpoints]
+  index = "http://example.com"
+  file = "http://example.com"
+
