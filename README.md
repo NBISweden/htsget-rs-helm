@@ -1,119 +1,93 @@
 # Htsget-rs Helm Chart
-This repository hosts Helm charts for deploying the [rust server implementation of the htsget protocol](https://github.com/umccr/htsget-rs) on a kubernetes environment.
 
-## Development environment
+This repository hosts Helm charts for installing the [rust server implementation of the htsget protocol](https://github.com/umccr/htsget-rs) on a kubernetes environment.
 
-This development environment has been tested in minikube. Instructions for
-installing minikube can be found in the
-[official instructions](https://minikube.sigs.k8s.io/docs/start/).
+## Installing the Chart
 
-### Setting up the environment and starting the minikube cluster on Ubuntu
+To install the Chart with the release name `htsget-rs`:
 
-1. Start the minikube and we use [calico](https://docs.tigera.io/calico/latest/getting-started/kubernetes/minikube) for the networkpolicy
-
-```
-minikube start --network-plugin=cni --cni=calico
-```
-2. Enable the addons
-```
-minikube addons enable ingress
-minikube addons enable ingress-dns
-```
-3. Add the `minikube-ip` as a DNS server
-```
-echo -e $"\nsearch local\nnameserver $(minikube ip)\ntimeout 5" \
-| sudo tee -a /etc/resolv.conf
-```
-4. Add minikibe 'htsget domain name ' to host file
-```
-echo -e  $"\n$(minikube ip) htsget.local\n$(minikube ip)" | sudo tee -a /etc/hosts
-```
-When you are done with testing, you can cleanup `resolv.conf` or wait till this is done automatically when the dhcp lease is renewed. The file `/etc/hosts` needs to be cleaned up manually.
-
-
-### Installing the htsget-rs helm chart
-
-Run `helm install htsget-rs charts/htsget-rs` to install the  `htsget-rs` chart.
-
-You can use the `kubectl get pods` command to see the kubernetes pods come online. After that, you can verify the deployment with `curl -s http://htsget.local/reads/service-info`.
-
-
-### Testing with sda-download
-
-Start by checking out [this branch}(https://github.com/GenomicDataInfrastructure/starter-kit-storage-and-interfaces/tree/featute/test-htsget-reencrypt) of the GDI starter-kit-storage&interfaces repository. This branch contains the re-encryption of file headers in the sda-download service.
-Follow the instructions in the README of that repository to set-up all necessary configuration files. Then run:
 ```sh
-docker compose -f docker-compose-demo.yml up
+helm install htsget-rs charts/htsget-rs
 ```
-and wait until the `data_loader` completes with `exit 0`.
 
-Then remove the commented block and paste the following under `configMapData: |-` in `charts/htsget-rs/values.yaml`:
-```ini
-ticket_server_addr = "0.0.0.0:8080"
-ticket_server_cors_allow_origins = "All"
+## Uninstalling the Chart
 
-[[resolvers]]
-regex = "(.*)"
-substitution_string = "$1"
+To uninstall the `htsget-rs` deployment and remove all kubernetes resources associated with the chart:
 
-[resolvers.storage]
-# The url that will be used for the client's url
-response_url = "http://host.minikube.internal:8443/s3/"
-forward_headers = true
-
-[resolvers.storage.endpoints]
-index = "http://host.minikube.internal:8443/s3/"
-# Header and file url
-file = "http://host.minikube.internal:8443/s3/"
-```
-and run `helm install htsget-rs charts/htsget-rs`.
-
-After the pod is Ready, you should be able to run the following commands successfully:
 ```sh
-token=$(curl -s -k https://localhost:8080/tokens | jq -r '.[0]')
-```
-to get a valid token and then
-```sh
-curl -v -H "Authorization: Bearer $token" http://htsget.local/reads/DATASET0001/htsnexus_test_NA12878
-```
-to get the htsget response using transcactions with unencrypted files.
-
-The default configuration in the `toml` file is for use with encrypted file transactions and is the one that should be deployed in production-like environments.
-
-### Testing TLS features
-
-This step requires that you have a cert-manager issuer installed in the cluster. You can follow the instructions [here](https://cert-manager.io/docs/installation/kubernetes/) for this. You can also use the following command to install the necessary resources:
-```sh
-kubectl apply -f .github/integration/scripts/dependencies.yaml
+helm delete htsget-rs
 ```
 
-To test TLS features for the ingress, first remove the empty array from the `ingress.tls` key and then uncomment the following block:
-```yaml
-#  - secretName: htsget.local-tls
-#    hosts:
-#      - htsget.local
-```
-Now the following command can me used to install the charts:
-```sh
-helm install htsget charts/htsget-rs/ --set ingress.clusterIssuer=cert-issuer
-```
-After the pod is Ready, you should be able to run the following command
-```sh
-curl -s -k -v https://htsget.local/reads/service-info
-```
-Since this test uses a self-signed certificate, you will need to use the `-k` flag to ignore the certificate verification.
+## Configuration
 
-To test TLS features for the htsget-rs service:
-First comment out the `tls` block of the `ingress` block in the `values.yaml` file. Then you can use the following command to install the charts:
-```sh
-helm install htsget charts/htsget-rs/ --set tls.clusterIssuer=cert-issuer --set tls.enabled=true --set htsget.tls.ticketServer.key="tls.key" --set htsget.tls.ticketServer.cert="tls.crt"
-```
-After the pod is Ready, you should be able to run the following command
-```sh
-kubectl run -ti curl --image=curlimages/curl -- sh
-```
-and within this pod, run the following command
-```sh
-curl -k https://htsget-htsget-rs:8080/reads/service-info
-```
-to get the htsget response.
+The following table lists the configurable parameters of the htsget-rs chart. These can be changed by editing the `values.yaml` file or by passing them as arguments to `helm install`.
+
+### Standard kubernetes configuration
+
+| Parameter | Description | Default |
+| --------- | ----------- | ------- |
+| `replicaCount` | Number of replicas to deploy | `1` |
+| `image.repository` | htsget-rs image repository | `harbor.nbis.se/gdi/htsget-rs` |
+| `image.pullPolicy` | htsget-rs image pull policy | `IfNotPresent` |
+| `image.tag` | htsget-rs image tag | `""` |
+| `imagePullSecrets` | Image registry secret names as an array | `[]` |
+| `nameOverride` | String to partially override htsget-rs.fullname template with a string (will prepend the release name) | `""` |
+| `fullnameOverride` | String to fully override htsget-rs.fullname template with a string | `""` |
+| `rbacEnabled` | Use role based access control | `true` |
+| `podSecurityPolicy.create` | Specifies whether a PodSecurityPolicy should be created | `true` |
+| `serviceAccount.create` | Specifies whether a service account should be created | `true` |
+| `serviceAccount.annotations` | Annotations to add to the service account | `{}` |
+| `serviceAccount.name` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template | `""` |
+| `serviceAccount.automount` | Automount service account token | `true` |
+| `podAnnotations` | Extra annotations to add to the pod | `{}` |
+| `podLabels` | Extra labels to add to the pod | `{}` |
+| `containerSecurityContext.allowPrivilegeEscalation` | Allow privilege escalation | `false` |
+| `containerSecurityContext.capabilities.drop` | Drop capabilities | `["ALL"]` |
+| `containerSecurityContext.privileged` | Run container in privileged mode | `false` |
+| `podSecurityContext.fsGroup` | Group ID for the container | `1000` |
+| `podSecurityContext.runAsUser` | User ID for the container | `1000` |
+| `podSecurityContext.runAsNonRoot` | Run as non-root user | `true` |
+| `podSecurityContext.seccompProfile.type` | Seccomp profile type | `RuntimeDefault` |
+| `service.type` | Kubernetes Service type | `ClusterIP` |
+| `service.port` | Kubernetes Service port | `8080` |
+| `ingress.enabled` | Enable ingress controller resource | `true` |
+| `ingress.className` | Ingress controller class name | `""` |
+| `ingress.annotations` | Annotations for the ingress | `{}` |
+| `ingress.hosts` | Hosts configuration for the ingress | `[{"host": "htsget.local","paths": [{"path": "/","pathType": "Prefix"}]}]` |
+| `ingress.tls` | TLS configuration for the ingress | `[]` |
+| `ingress.issuer` | Issuer for the TLS certificate | `""` |
+| `ingress.clusterIssuer` | Cluster issuer for the TLS certificate | `""` |
+| `resources` | CPU/memory resource requests/limits | `{}` |
+| `autoscaling.enabled` | Enable horizontal pod autoscaling | `false` |
+| `autoscaling.minReplicas` | Minimum number of replicas when autoscaling is enabled | `1` |
+| `autoscaling.maxReplicas` | Maximum number of replicas when autoscaling is enabled | `20` |
+| `autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization percentage when autoscaling is enabled | `80` |
+| `nodeSelector` | Node labels for pod assignment | `{}` |
+| `tolerations` | Tolerations for pod assignment | `[]` |
+| `affinity` | Affinity for pod assignment | `{}` |
+
+### htsget-rs specific configuration
+
+To access all configuration options of `htsget-rs` one needs to pass the configuration in a `toml` file format (for details see [here](https://github.com/umccr/htsget-rs/tree/crypt4gh/htsget-config)). This is done by the `configMapData` parameter.
+The following table lists the parameters of the htsget-rs chart that are specific to the htsget-rs server configuration and as such they must be set in accordance with the `toml` configuration held by the `configMapData` parameter. These parameters map the required kubernetes resources to the htsget-rs server configuration.
+
+| Parameter | Description | Default |
+| --------- | ----------- | ------- |
+| `configMapData` | htsget-rs configuration in toml format | see `values.yaml` and [here](https://github.com/umccr/htsget-rs/tree/crypt4gh/htsget-config) for details |
+| `tls.enabled` | Enable TLS for the htsget-rs server. Set to `true` if `ticket_server_tls` parameters are set. | `false` |
+ | `false` |
+| `tls.issuer` | Issuer for the TLS certificate | `""` |
+| `tls.clusterIssuer` | Cluster issuer for the TLS certificate | `""` |
+| `tls.secretName` | Name of the secret containing the TLS certificates for the ticket server | `""` |
+| `htsget.tlsPath` | Path where the ticket server TLS certificates are mounted in the pod container| `"/tls"` |
+| `c4gh.predefined` | Set to `true` if `private_key` and `public_key` are set under the `[resolver.object_type]` table of the `toml` config| `false` |
+| `c4gh.secretName` | Name of the secret containing the private key and public key for crypt4gh | `""` |
+| `htsget.c4ghPath` | Path where the crypt4gh keys are mounted to the pod container| `""` |
+| `tlsDataServer.enabled` | Enable TLS for the data server. Set to `true` if `data_server_tls` parameters are set.  | `false` |
+| `tlsDataServer.secretName` | Name of the secret containing the TLS certificates for the data server | `""` |
+| `htsget.tlsPathDataServer` | Path where the data server TLS certificates are mounted in the pod container| `""` |
+| `tlsClient.enabled` | Enable TLS for the client. Set to `true` if `tls` parameters are set under the `[resolvers.storage.endpoints]` of the `toml` config.  | `false` |
+| `tlsClient.secretName` | Name of the secret containing the TLS certificates for the client | `""` |
+| `htsget.tlsPathClient` | Path where the TLS certificates for the client are mounted in the pod container| `""` |
+| `htsget.rustLog` | Rust log level | `"info"` |
+| `htsget.formattingStyle` | Formatting style for the rust logs | `"Pretty"` |

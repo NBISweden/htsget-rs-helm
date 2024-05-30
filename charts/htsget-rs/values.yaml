@@ -99,10 +99,12 @@ tolerations: []
 
 affinity: {}
 
+# htsget-rs specific configuration.
+
 # The application's ticket server TLS can be disabled by setting enabled to false.
 # Not to be used in production but handy for testing.
 tls:
-  enabled: true
+  enabled: false
   issuer: ""
   clusterIssuer: ""
   secretName: ""
@@ -124,7 +126,6 @@ tlsClient:
   enabled: false
   secretName: ""
 
-# htsget-rs specific configuration.
 htsget:
   # Logging levels and formatting (inherited by rust)
   rustLog: "info" # debug, trace
@@ -155,8 +156,8 @@ configMapData: |-
   # The ticket server configuration
   ticket_server_addr = "127.0.0.1:8080"
   ticket_server_cors_allow_origins = "All"
-  ticket_server_tls.key = "/tls/tls.key"
-  ticket_server_tls.cert = "/tls/tls.crt"
+  # ticket_server_tls.key = "/tls/tls.key"
+  # ticket_server_tls.cert = "/tls/tls.crt"
 
   # disable the internal data server
   data_server_enabled = false
