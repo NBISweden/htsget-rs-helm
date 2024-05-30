@@ -4,6 +4,7 @@ name: htsget-rs
 version: 0.1.0
 # app version corresponds to the default image tag
 appVersion: "20240430"
+kubeVersion: "^1.19.0-0"
 
 description: A server implementation of the htsget protocol for bioinformatics in Rust.
 home: https://github.com/umccr/htsget-rs/
