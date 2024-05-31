@@ -45,7 +45,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["htsget-actix"]
-          args: ["--config", "/config/download-config.toml"]
+          args: ["--config", "/config/config.toml"]
           env:
           - name: FORMATTING_STYLE
             value: {{ default "Full" .Values.htsget.formattingStyle }}
