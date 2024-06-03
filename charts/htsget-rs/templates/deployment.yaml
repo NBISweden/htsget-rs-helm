@@ -33,7 +33,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.rbacEnabled}}
+      {{- if and .Values.rbacEnabled (semverCompare "<v1.25.0" .Capabilities.KubeVersion.Version)}}
       serviceAccountName: {{ include "htsget-rs.serviceAccountName" . }}
       {{- end }}
       securityContext:
