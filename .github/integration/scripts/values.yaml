@@ -110,9 +110,9 @@ tls:
 c4gh:
   # Set to true if htsget will use a predefined c4gh key-pair instead
   # of creating one on-the-fly when handling encrypted data
-  predefined: false
+  predefined: true
   # The name for the secret containing c4gh keys.
-  secretName: ""
+  secretName: "c4gh"
 
 # Enable data server TLS
 tlsDataServer:
@@ -132,7 +132,7 @@ htsget:
 
   # Path where the sensitive files can be found.
   # These should match the path in the htsget config below.
-  c4ghPath: ""
+  c4ghPath: "/c4gh"
   tlsPath: "/tls"
   tlsPathDataServer: ""
   tlsPathClient: ""
@@ -155,8 +155,8 @@ configMapData: |-
   ticket_server_tls.key = "/tls/tls.key"
   ticket_server_tls.cert = "/tls/tls.crt"
 
-  # disable the internal data server
-  data_server_enabled = false
+  # if set to false the internal data server is disabled
+  data_server_enabled = true
 
   [[resolvers]]
   regex = "(.*)"
