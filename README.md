@@ -84,7 +84,7 @@ The following table lists the parameters of the htsget-rs chart that are specifi
 | `c4gh.secretName` | Name of the secret containing the private key and public key for crypt4gh | `""` |
 | `htsget.c4ghPath` | Path where the crypt4gh keys are mounted to the pod container| `""` |
 | `htsget.dataServer.enabled` | Enable the data server. Set to `true` if `data_server` parameter is set. | `true` |
-| `htsget.dataServer.localPath` | Path where data is mounted if the data server is run in local storage mode. Should agree with htsget config option `data_server_local_path` | `"/data"` |
+| `htsget.dataServer.localPath` | Path where data is mounted if the data server is run in local storage mode. Should agree with htsget config option `data_server_local_path` if specified. | `""` |
 | `htsget.dataServer.existingClaim` | Name of the existing PVC to use for the local data server storage backend. | `""` |
 | `htsget.dataServer.nfsServer` | NFS server address to use as storage for the local data server. | `""` |
 | `htsget.dataServer.nfsPath` | Path on the NFS server to use as storage for the local data server. | `""` |

@@ -139,7 +139,7 @@ htsget:
   # If the data server is enabled, use of a local storage backend can be enabled by setting the localPath to a path where the data files will be mounted
   dataServer:
     enabled: true
-    localPath: "/data"
+    localPath: ""
     # Data can be mounted to the local path via an existing persistent volume claim
     existingClaim: ""
     # For a nfs volume there is also the option to set the configuration below instead of using a persistent volume claim
@@ -171,7 +171,7 @@ configMapData: |-
   data_server_enabled = true
   data_server_addr = "127.0.0.1:8081"
   data_server_cors_allow_origins = "All"
-  data_server_local_path = "/data"
+  # data_server_local_path = "/data"
   # data_server_tls.cert = "/tlsDataServer/tls.crt"
   # data_server_tls.key = "/tlsDataServer/tls.key"
 
