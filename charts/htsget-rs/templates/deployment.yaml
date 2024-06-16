@@ -87,12 +87,17 @@ spec:
             {{- end }}
             {{- if .Values.tlsClient.enabled }}
             - name: client-certs
-              mountPath: {{ "A path for client TLS certificates is required" .Values.htsget.tlsPathClient | quote}}
+              mountPath: {{ required "A path for client TLS certificates is required" .Values.htsget.tlsPathClient | quote}}
               readOnly: true
             {{- end }}
             {{- if .Values.tlsDataServer.enabled }}
             - name: data-server-certs
-              mountPath: {{ "A path for data server TLS certificates is required" .Values.htsget.tlsPathDataServer | quote}}
+              mountPath: {{ required "A path for data server TLS certificates is required" .Values.htsget.tlsPathDataServer | quote}}
+              readOnly: true
+            {{- end }}
+            {{- if .Values.htsget.dataServer.localPath }}
+            - name: local-data
+              mountPath: {{ .Values.htsget.dataServer.localPath | quote }}
               readOnly: true
             {{- end }}
       volumes:
@@ -128,6 +133,18 @@ spec:
           secret:
             defaultMode: 0440
             secretName: {{ required "A TLS secret name is required for the data server" .Values.tlsDataServer.secretName }}
+      {{- end }}
+      {{- if and .Values.htsget.dataServer.enabled .Values.htsget.dataServer.localPath }}
+        - name: local-data
+        {{- if .Values.htsget.dataServer.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.htsget.dataServer.existingClaim }}
+        {{- else }}
+          nfs:
+            server: {{ required "A persistent volume claim or a NFS server is required for local data storage" .Values.htsget.dataServer.nfsServer | quote }}
+            path: {{ if .Values.htsget.dataServer.nfsPath }}{{ .Values.htsget.dataServer.nfsPath | quote }}{{ else }}{{ "/" }}{{ end }}
+            readOnly: true
+        {{- end }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

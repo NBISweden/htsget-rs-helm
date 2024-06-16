@@ -99,8 +99,6 @@ tolerations: []
 
 affinity: {}
 
-# htsget-rs specific configuration.
-
 # The application's ticket server TLS can be disabled by setting enabled to false.
 # Not to be used in production but handy for testing.
 tls:
@@ -131,12 +129,22 @@ htsget:
   rustLog: "info" # debug, trace
   formattingStyle: "Pretty" # Full, Compact, Pretty, Json
 
-  # Path where the sensitive files can be found.
   # These should match the path in the htsget config below.
+  # Path where the sensitive files can be found.
   c4ghPath: ""
   tlsPath: "/tls"
   tlsPathDataServer: ""
   tlsPathClient: ""
+
+  # If the data server is enabled, use of a local storage backend can be enabled by setting the localPath to a path where the data files will be mounted
+  dataServer:
+    enabled: true
+    localPath: "/data"
+    # Data can be mounted to the local path via an existing persistent volume claim
+    existingClaim: ""
+    # For a nfs volume there is also the option to set the configuration below instead of using a persistent volume claim
+    nfsServer: ""
+    nfsPath: ""
 
 # The htsget-rs server is configured by placing the contents of the toml config file below (keep nindent 2).
 # All of the available configuration options (https://github.com/umccr/htsget-rs/tree/crypt4gh/htsget-config)
@@ -159,25 +167,14 @@ configMapData: |-
   # ticket_server_tls.key = "/tls/tls.key"
   # ticket_server_tls.cert = "/tls/tls.crt"
 
-  # disable the internal data server
-  data_server_enabled = false
+  # The data server configuration
+  data_server_enabled = true
+  data_server_addr = "127.0.0.1:8081"
+  data_server_cors_allow_origins = "All"
+  data_server_local_path = "/data"
+  # data_server_tls.cert = "/tlsDataServer/tls.crt"
+  # data_server_tls.key = "/tlsDataServer/tls.key"
 
   [[resolvers]]
-  regex = "(.*)"
-  substitution_string = "$1"
-
-  [resolvers.object_type]
-  # if set to true, responseUrl must point to an endpoint serving encrypted data
-  send_encrypted_to_client = false
-
-  [resolvers.storage]
-  # The url that will be used for the client's url
-  response_url = "http://example.com"
-  forward_headers = true
-  # if set to true, the client will not check the certificate validity
-  danger_accept_invalid_certs = true
-
-  [resolvers.storage.endpoints]
-  index = "http://example.com"
-  file = "http://example.com"
-
+  regex = ".*"
+  substitution_string = "$0"
