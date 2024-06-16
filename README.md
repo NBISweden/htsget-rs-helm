@@ -83,6 +83,11 @@ The following table lists the parameters of the htsget-rs chart that are specifi
 | `c4gh.predefined` | Set to `true` if `private_key` and `public_key` are set under the `[resolver.object_type]` table of the `toml` config| `false` |
 | `c4gh.secretName` | Name of the secret containing the private key and public key for crypt4gh | `""` |
 | `htsget.c4ghPath` | Path where the crypt4gh keys are mounted to the pod container| `""` |
+| `htsget.dataServer.enabled` | Enable the data server. Set to `true` if `data_server` parameter is set. | `true` |
+| `htsget.dataServer.localPath` | Path where data is mounted if the data server is run in local storage mode. Should agree with htsget config option `data_server_local_path` | `"/data"` |
+| `htsget.dataServer.existingClaim` | Name of the existing PVC to use for the local data server storage backend. | `""` |
+| `htsget.dataServer.nfsServer` | NFS server address to use as storage for the local data server. | `""` |
+| `htsget.dataServer.nfsPath` | Path on the NFS server to use as storage for the local data server. | `""` |
 | `tlsDataServer.enabled` | Enable TLS for the data server. Set to `true` if `data_server_tls` parameters are set.  | `false` |
 | `tlsDataServer.secretName` | Name of the secret containing the TLS certificates for the data server | `""` |
 | `htsget.tlsPathDataServer` | Path where the data server TLS certificates are mounted in the pod container| `""` |
@@ -91,3 +96,11 @@ The following table lists the parameters of the htsget-rs chart that are specifi
 | `htsget.tlsPathClient` | Path where the TLS certificates for the client are mounted in the pod container| `""` |
 | `htsget.rustLog` | Rust log level | `"info"` |
 | `htsget.formattingStyle` | Formatting style for the rust logs | `"Pretty"` |
+
+### Example configurations
+
+
+The `values.yaml` file presents an example configuration for deploying `htsget-rs` with the `data server` enabled and running in `local storage` mode where data are held by a local storage backend.
+Under `.github/integration/scripts/` one can found examples of how to deploy `htsget-rs` in a `url storage` backend configuration with `crypt4gh` encryption and `TLS` features enabled. Note that all examples are for illustrative purposes and not recommended for production deployments without further administrative considerations.
+
+For further details of how to configure the `htsget-rs` server, please refer to the [htsget-rs configuration documentation](https://github.com/umccr/htsget-rs/tree/main/htsget-config) and the examples therein.
