@@ -95,7 +95,7 @@ spec:
               mountPath: {{ required "A path for data server TLS certificates is required" .Values.htsget.tlsPathDataServer | quote}}
               readOnly: true
             {{- end }}
-            {{- if .Values.htsget.dataServer.localPath }}
+            {{- if and .Values.htsget.dataServer.enabled .Values.htsget.dataServer.localPath }}
             - name: local-data
               mountPath: {{ .Values.htsget.dataServer.localPath | quote }}
               readOnly: true
