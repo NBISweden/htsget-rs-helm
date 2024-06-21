@@ -31,3 +31,30 @@ metadata:
 spec:
   ca:
     secretName: root-secret
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-data-server-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/htsget"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-data-server-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: manual

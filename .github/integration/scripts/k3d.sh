@@ -13,6 +13,11 @@ curl -sLO https://dl.k8s.io/release/"$k8s"/bin/linux/amd64/kubectl
 chmod +x ./kubectl
 sudo mv ./kubectl /usr/local/bin/kubectl
 
-k3d cluster create sda --image=rancher/k3s:"$k8s"-k3s1 --wait --timeout 10m
+k3d cluster create sda --image=rancher/k3s:"$k8s"-k3s1 --volume "$PWD"/.github/integration/test-data:/htsget --wait --timeout 10m
 k3d kubeconfig merge sda --kubeconfig-switch-context
 mkdir -p ~/.kube/ && cp ~/.config/kubeconfig-sda.yaml ~/.kube/config
+
+clusterIP=$(kubectl -n kube-system get svc traefik -o jsonpath='{..ingress[0].ip}')
+
+echo -e  "$clusterIP htsget.local\n" | sudo tee -a /etc/hosts
+echo -e  "$clusterIP data-server.local\n" | sudo tee -a /etc/hosts
