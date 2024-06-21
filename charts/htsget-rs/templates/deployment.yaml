@@ -55,6 +55,9 @@ spec:
             - name: htsget
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+            - name: data-server
+              containerPort: {{ .Values.dataServer.service.port }}
+              protocol: TCP
           livenessProbe:
             httpGet:
               path: /reads/service-info
