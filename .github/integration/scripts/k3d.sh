@@ -17,6 +17,9 @@ k3d cluster create sda --image=rancher/k3s:"$k8s"-k3s1 --volume "$PWD"/.github/i
 k3d kubeconfig merge sda --kubeconfig-switch-context
 mkdir -p ~/.kube/ && cp ~/.config/kubeconfig-sda.yaml ~/.kube/config
 
+until kubectl -n kube-system get svc traefik -o jsonpath='{..ingress[0].ip}' 2> /dev/null; do
+    sleep 1
+done
 clusterIP=$(kubectl -n kube-system get svc traefik -o jsonpath='{..ingress[0].ip}')
 
 echo -e  "$clusterIP htsget.local\n" | sudo tee -a /etc/hosts

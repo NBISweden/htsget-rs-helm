@@ -16,6 +16,10 @@ jobs:
       matrix:
         version: ["1.28", "1.29"]
         tls: ["false","true"]
+        mode: ["urlstorage","dataserver"]
+        exclude:
+          - mode: "urlstorage"
+            tls: "false"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,7 +43,7 @@ jobs:
         shell: bash
 
       - name: Deploy htsget
-        run: bash .github/integration/scripts/deploy_charts.sh ${{matrix.tls}}
+        run: bash .github/integration/scripts/deploy_charts.sh ${{matrix.tls}} ${{matrix.mode}}
         shell: bash
 
       - name: Check deployment
