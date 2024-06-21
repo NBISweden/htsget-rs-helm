@@ -22,7 +22,7 @@ helm delete htsget-rs
 
 The following table lists the configurable parameters of the htsget-rs chart. These can be changed by editing the `values.yaml` file or by passing them as arguments to `helm install`.
 
-### Standard kubernetes configuration
+### Standard configuration
 
 | Parameter | Description | Default |
 | --------- | ----------- | ------- |
@@ -34,8 +34,8 @@ The following table lists the configurable parameters of the htsget-rs chart. Th
 | `nameOverride` | String to partially override htsget-rs.fullname template with a string (will prepend the release name) | `""` |
 | `fullnameOverride` | String to fully override htsget-rs.fullname template with a string | `""` |
 | `rbacEnabled` | Use role based access control | `true` |
-| `podSecurityPolicy.create` | Specifies whether a PodSecurityPolicy should be created | `true` |
-| `serviceAccount.create` | Specifies whether a service account should be created | `true` |
+| `podSecurityPolicy.create` | Specifies whether a PodSecurityPolicy should be created | `false` |
+| `serviceAccount.create` | Specifies whether a service account should be created | `false` |
 | `serviceAccount.annotations` | Annotations to add to the service account | `{}` |
 | `serviceAccount.name` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template | `""` |
 | `serviceAccount.automount` | Automount service account token | `true` |
@@ -48,15 +48,24 @@ The following table lists the configurable parameters of the htsget-rs chart. Th
 | `podSecurityContext.runAsUser` | User ID for the container | `1000` |
 | `podSecurityContext.runAsNonRoot` | Run as non-root user | `true` |
 | `podSecurityContext.seccompProfile.type` | Seccomp profile type | `RuntimeDefault` |
-| `service.type` | Kubernetes Service type | `ClusterIP` |
-| `service.port` | Kubernetes Service port | `8080` |
-| `ingress.enabled` | Enable ingress controller resource | `true` |
+| `service.type` | Service type for the ticket server | `ClusterIP` |
+| `service.port` | Service port for the ticket server | `8080` |
+| `ingress.enabled` | Enable ingress controller resource for the ticket server | `true` |
 | `ingress.className` | Ingress controller class name | `""` |
 | `ingress.annotations` | Annotations for the ingress | `{}` |
 | `ingress.hosts` | Hosts configuration for the ingress | `[{"host": "htsget.local","paths": [{"path": "/","pathType": "Prefix"}]}]` |
 | `ingress.tls` | TLS configuration for the ingress | `[]` |
 | `ingress.issuer` | Issuer for the TLS certificate | `""` |
 | `ingress.clusterIssuer` | Cluster issuer for the TLS certificate | `""` |
+| `dataServer.service.type` | Service type for the data server | `ClusterIP` |
+| `dataServer.service.port` | Service port for the data server | `8081` |
+| `dataServer.ingress.enabled` | Enable ingress controller resource for the data server | `true` |
+| `dataServer.ingress.className` | Ingress controller class name | `""` |
+| `dataServer.ingress.annotations` | Annotations for the ingress | `{}` |
+| `dataServer.ingress.hosts` | Hosts configuration for the ingress | `[{"host": "data-server.local","paths": [{"path": "/","pathType": "Prefix"}]}]` |
+| `dataServer.ingress.tls` | TLS configuration for the ingress | `[]` |
+| `dataServer.ingress.issuer` | Issuer for the TLS certificate | `""` |
+| `dataServer.ingress.clusterIssuer` | Cluster issuer for the TLS certificate | `""` |
 | `resources` | CPU/memory resource requests/limits | `{}` |
 | `autoscaling.enabled` | Enable horizontal pod autoscaling | `false` |
 | `autoscaling.minReplicas` | Minimum number of replicas when autoscaling is enabled | `1` |
@@ -74,10 +83,9 @@ The following table lists the parameters of the htsget-rs chart that are specifi
 | Parameter | Description | Default |
 | --------- | ----------- | ------- |
 | `configMapData` | htsget-rs configuration in toml format | see `values.yaml` and [here](https://github.com/umccr/htsget-rs/tree/crypt4gh/htsget-config) for details |
-| `tls.enabled` | Enable TLS for the htsget-rs server. Set to `true` if `ticket_server_tls` parameters are set. | `false` |
- | `false` |
-| `tls.issuer` | Issuer for the TLS certificate | `""` |
-| `tls.clusterIssuer` | Cluster issuer for the TLS certificate | `""` |
+| `tls.enabled` | Enable TLS for the ticket server. Set to `true` if `ticket_server_tls` parameters are set. | `false` |
+| `tls.issuer` | Issuer for the ticker server TLS certificate | `""` |
+| `tls.clusterIssuer` | Cluster issuer for the ticket server TLS certificate | `""` |
 | `tls.secretName` | Name of the secret containing the TLS certificates for the ticket server | `""` |
 | `htsget.tlsPath` | Path where the ticket server TLS certificates are mounted in the pod container| `"/tls"` |
 | `c4gh.predefined` | Set to `true` if `private_key` and `public_key` are set under the `[resolver.object_type]` table of the `toml` config| `false` |
@@ -99,8 +107,7 @@ The following table lists the parameters of the htsget-rs chart that are specifi
 
 ### Example configurations
 
-
-The `values.yaml` file presents an example configuration for deploying `htsget-rs` with the `data server` enabled and running in `local storage` mode where data are held by a local storage backend.
-Under `.github/integration/scripts/` one can found examples of how to deploy `htsget-rs` in a `url storage` backend configuration with `crypt4gh` encryption and `TLS` features enabled. Note that all examples are for illustrative purposes and not recommended for production deployments without further administrative considerations.
+Further examples of how to configure the `htsget-rs` deployment can be found Under `.github/integration/scripts/`. The `values.yaml` file inside this directory  presents an example configuration for deploying `htsget-rs` in a `url storage` backend configuration with `crypt4gh` encryption and `TLS` features enabled.
+The `data-server-config.toml` has a configuration example for deploying htsget with the `data server` enabled and running in `local storage` mode where data are held by a local storage backend. Note that all examples are for illustrative purposes and not recommended for production deployments without further administrative considerations.
 
 For further details of how to configure the `htsget-rs` server, please refer to the [htsget-rs configuration documentation](https://github.com/umccr/htsget-rs/tree/main/htsget-config) and the examples therein.
