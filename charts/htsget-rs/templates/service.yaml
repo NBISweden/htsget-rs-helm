@@ -13,21 +13,3 @@ spec:
       name: htsget
   selector:
     {{- include "htsget-rs.selectorLabels" . | nindent 4 }}
----
-{{- if .Values.htsget.dataServer.enabled }}
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "htsget-rs.fullname" . }}-data-server
-  labels:
-    {{- include "htsget-rs.labels" . | nindent 4 }}
-spec:
-  type: {{ .Values.dataServer.service.type }}
-  ports:
-    - port: {{ .Values.dataServer.service.port }}
-      targetPort: data-server
-      protocol: TCP
-      name: data-server
-  selector:
-    {{- include "htsget-rs.selectorLabels" . | nindent 4 }}
-{{- end -}}
