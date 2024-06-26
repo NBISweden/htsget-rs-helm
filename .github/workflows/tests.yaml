@@ -1,0 +1,101 @@
+name: Test deployment
+
+on:
+  pull_request:
+    paths-ignore:
+      - ".github/workflows/**"
+      - ".gitignore"
+      - "**/*.md"
+      - ".github/dependabot.yaml"
+      - "charts/**"
+
+jobs:
+  chart:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["1.28", "1.29"]
+        tls: ["false","true"]
+        mode: ["urlstorage","dataserver","s3storage"]
+        exclude:
+          - mode: "urlstorage"
+            tls: "false"
+          - mode: "s3storage"
+            tls: "true"
+          - mode: "s3storage"
+            tls: "false"
+            version: "1.28"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3.5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialise k3d
+        id: initK3D
+        run: bash .github/integration/scripts/k3d.sh ${{matrix.version}}
+        shell: bash
+      - name: debug
+        if: steps.initK3D.outcome == 'failure'
+        run: k3d version list k3s | grep ${{matrix.version}}
+        shell: bash
+
+      - name: Deploy external services
+        run: bash .github/integration/scripts/dependencies.sh
+        shell: bash
+
+      - name: Deploy htsget
+        run: bash .github/integration/scripts/deploy_charts.sh ${{matrix.tls}} ${{matrix.mode}}
+        shell: bash
+
+      - name: Check deployment
+        run: |
+          sleep 30
+            if [ ! $(kubectl get pods -l role="htsget" -o=jsonpath='{.items[*].status.containerStatuses[0].ready}' | grep true) ]; then
+              echo "htsget is not ready after 30s, exiting"
+              exit 1
+            fi
+
+      - name: test
+        if: always()
+        run: |
+          kubectl get pods
+          sleep 1
+            echo "## describe htsget" && kubectl describe pod -l role="htsget"
+            sleep 1
+            echo "## logs htsget" && kubectl logs -l role="htsget"
+            sleep 1
+
+          if [ ${{matrix.mode}} == "s3storage" ] && [ ${{matrix.tls}} == "false" ]; then
+            echo "## testing functionality of s3storage"
+            statusCode=$(curl http://htsget.local/reads/bam/htsnexus_test_NA12878 -i -o /dev/null -w '%{http_code}\n' -s)
+            if [ $statusCode -ne 200 ]; then
+              echo "htsget failed with status code $statusCode"
+              exit 1
+            else
+              echo "test succeeded"
+            fi
+          fi
+
+          if [ ${{matrix.mode}} == "dataserver" ] && [ ${{matrix.tls}} == "false" ]; then
+            echo "## testing functionality of ticket server with local storage"
+            statusCode=$(curl http://htsget.local/reads/bam/htsnexus_test_NA12878 -i -o /dev/null -w '%{http_code}\n' -s)
+            if [ $statusCode -ne 200 ]; then
+              echo "htsget failed with status code $statusCode"
+              exit 1
+            else
+              echo "test succeeded"
+            fi
+            echo "## testing download from local dataserver"
+            statusCode=$(curl http://data-server.local/bam/htsnexus_test_NA12878.bam -i -o /dev/null -w '%{http_code}\n' -s)
+            if [ $statusCode -ne 200 ]; then
+              echo "download from htsget data server failed with status code $statusCode"
+              exit 1
+            else
+              echo "test succeeded"
+            fi
+          fi
+        shell: bash

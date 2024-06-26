@@ -1,0 +1,184 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "htsget-rs.fullname" . }}
+  labels:
+    role: htsget
+    app: {{ template "htsget-rs.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: {{ template "htsget-rs.fullname" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "htsget-rs.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        role: htsget
+        {{- include "htsget-rs.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.rbacEnabled (semverCompare "<v1.25.0" .Capabilities.KubeVersion.Version)}}
+      serviceAccountName: {{ include "htsget-rs.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["htsget-actix"]
+          args: ["--config", "/config/config.toml"]
+          env:
+          - name: FORMATTING_STYLE
+            value: {{ default "Full" .Values.htsget.formattingStyle }}
+          - name: RUST_LOG
+            value: {{ default "info" .Values.htsget.rustLog }}
+          {{- if .Values.htsget.s3Storage.enabled }}
+          - name:  AWS_REGION
+            value: {{ required "An AWS region is required" .Values.htsget.s3Storage.region | quote}}
+          {{- if .Values.htsget.s3Storage.secretName }}
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ required "A secret for AWS access key id is required" .Values.htsget.s3Storage.secretName }}
+                key: user
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ required "A secret for AWS secret access key is required" .Values.htsget.s3Storage.secretName }}
+                key: password
+          {{- else }}
+          - name: AWS_ACCESS_KEY_ID
+            value: {{ required "An AWS access key id is required" .Values.htsget.s3Storage.user | quote }}
+          - name: AWS_SECRET_ACCESS_KEY
+            value: {{ required "An AWS secret access key is required" .Values.htsget.s3Storage.password | quote}}
+          {{- end }}
+          {{- end }}
+          ports:
+            - name: htsget
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            - name: data-server
+              containerPort: {{ .Values.dataServer.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /reads/service-info
+              port: htsget
+              scheme: {{ ternary "HTTPS" "HTTP" ( .Values.tls.enabled) }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /reads/service-info
+              port: htsget
+              scheme: {{ ternary "HTTPS" "HTTP" ( .Values.tls.enabled) }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            {{- if .Values.c4gh.predefined }}
+            - name: c4gh
+              mountPath: {{ required "A path for c4gh keys is required" .Values.htsget.c4ghPath | quote }}
+              readOnly: true
+            {{- end }}
+            {{- if .Values.tls.enabled}}
+            - name: tls
+              mountPath: {{ required "A path for ticket server TLS certificates is required" .Values.htsget.tlsPath }}
+              readOnly: true
+            {{- end }}
+            {{- if .Values.tlsClient.enabled }}
+            - name: client-certs
+              mountPath: {{ required "A path for client TLS certificates is required" .Values.htsget.tlsPathClient | quote }}
+              readOnly: true
+            {{- end }}
+            {{- if .Values.tlsDataServer.enabled }}
+            - name: data-server-certs
+              mountPath: {{ required "A path for data server TLS certificates is required" .Values.htsget.tlsPathDataServer | quote }}
+              readOnly: true
+            {{- end }}
+            {{- if and .Values.htsget.dataServer.enabled .Values.htsget.dataServer.localPath }}
+            - name: local-data
+              mountPath: {{ .Values.htsget.dataServer.localPath | quote }}
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "htsget-rs.fullname" . }}-config
+      {{- if .Values.c4gh.predefined }}
+        - name: c4gh
+          secret:
+            defaultMode: 0440
+            secretName: {{ required "A secret for the c4gh key is required" .Values.c4gh.secretName }}
+      {{- end }}
+      {{- if .Values.tls.enabled }}
+        - name: tls
+        {{- if or .Values.tls.clusterIssuer .Values.tls.issuer }}
+          secret:
+            defaultMode: 0440
+            secretName: {{ template "htsget-rs.fullname" . }}-certs
+        {{- else }}
+          secret:
+            defaultMode: 0440
+            secretName: {{ required "A certificate issuer or a TLS secret name is required" .Values.tls.secretName }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.tlsClient.enabled }}
+        - name: client-certs
+          secret:
+            defaultMode: 0440
+            secretName: {{ required "A client TLS secret name is required" .Values.tlsClient.secretName }}
+      {{- end }}
+      {{- if .Values.tlsDataServer.enabled }}
+        - name: data-server-certs
+          secret:
+            defaultMode: 0440
+            secretName: {{ required "A TLS secret name is required for the data server" .Values.tlsDataServer.secretName }}
+      {{- end }}
+      {{- if and .Values.htsget.dataServer.enabled .Values.htsget.dataServer.localPath }}
+        - name: local-data
+        {{- if .Values.htsget.dataServer.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.htsget.dataServer.existingClaim }}
+        {{- else }}
+          nfs:
+            server: {{ required "A persistent volume claim or a NFS server is required for local data storage" .Values.htsget.dataServer.nfsServer | quote }}
+            path: {{ if .Values.htsget.dataServer.nfsPath }}{{ .Values.htsget.dataServer.nfsPath | quote }}{{ else }}{{ "/" }}{{ end }}
+            readOnly: true
+        {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
