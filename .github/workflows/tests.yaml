@@ -22,6 +22,8 @@ jobs:
             tls: "false"
           - mode: "s3storage"
             tls: "true"
+          - mode: "s3storage"
+            tls: "false"
             version: "1.28"
     steps:
       - name: Checkout
