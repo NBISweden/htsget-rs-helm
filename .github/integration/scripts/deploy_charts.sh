@@ -20,27 +20,26 @@ helm install htsget charts/htsget-rs/ \
 --set tls.enabled="$1" \
 -f .github/integration/scripts/values.yaml \
 --wait
-
 fi
 
 # Test deployment of htsget-rs with data server enabled using a local storage backend
 
 if [ "$2" == "dataserver" ]; then
 
-if [ "$1" == "true" ]; then
-    echo "TLS enabled"
-    sed -i 's/# .*\(ticket_server_tls.key.*\)/\1/' .github/integration/scripts/data-server-config.toml
-    sed -i 's/# .*\(ticket_server_tls.cert.*\)/\1/' .github/integration/scripts/data-server-config.toml
-    sed -i 's/# .*\(data_server_tls.key.*\)/\1/' .github/integration/scripts/data-server-config.toml
-    sed -i 's/# .*\(data_server_tls.cert.*\)/\1/' .github/integration/scripts/data-server-config.toml
+    if [ "$1" == "true" ]; then
+        echo "TLS enabled"
+        sed -i 's/# .*\(ticket_server_tls.key.*\)/\1/' .github/integration/scripts/data-server-config.toml
+        sed -i 's/# .*\(ticket_server_tls.cert.*\)/\1/' .github/integration/scripts/data-server-config.toml
+        sed -i 's/# .*\(data_server_tls.key.*\)/\1/' .github/integration/scripts/data-server-config.toml
+        sed -i 's/# .*\(data_server_tls.cert.*\)/\1/' .github/integration/scripts/data-server-config.toml
 
-else
-    echo "TLS disabled"
-    sed -i 's/\(ticket_server_tls.key.*\)/# \1/' .github/integration/scripts/data-server-config.toml
-    sed -i 's/\(ticket_server_tls.cert.*\)/# \1/' .github/integration/scripts/data-server-config.toml
-    sed -i 's/\(data_server_tls.key.*\)/# \1/' .github/integration/scripts/data-server-config.toml
-    sed -i 's/\(data_server_tls.cert.*\)/# \1/' .github/integration/scripts/data-server-config.toml
-fi
+    else
+        echo "TLS disabled"
+        sed -i 's/\(ticket_server_tls.key.*\)/# \1/' .github/integration/scripts/data-server-config.toml
+        sed -i 's/\(ticket_server_tls.cert.*\)/# \1/' .github/integration/scripts/data-server-config.toml
+        sed -i 's/\(data_server_tls.key.*\)/# \1/' .github/integration/scripts/data-server-config.toml
+        sed -i 's/\(data_server_tls.cert.*\)/# \1/' .github/integration/scripts/data-server-config.toml
+    fi
 
 helm install htsget charts/htsget-rs/ \
 --set htsget.dataServer.enabled=true  \
@@ -51,5 +50,15 @@ helm install htsget charts/htsget-rs/ \
 --set-file configMapData=.github/integration/scripts/data-server-config.toml \
 -f .github/integration/scripts/values.yaml \
 --wait
+fi
 
+if [ "$1" == "false" ] && [ "$2" == "s3storage" ]; then
+
+helm install htsget charts/htsget-rs/ \
+--set tls.clusterIssuer=cert-issuer  \
+--set tls.enabled="$1" \
+--set htsget.s3Storage.enabled=true \
+--set-file configMapData=.github/integration/scripts/s3-backend-config.toml \
+-f .github/integration/scripts/values.yaml \
+--wait
 fi

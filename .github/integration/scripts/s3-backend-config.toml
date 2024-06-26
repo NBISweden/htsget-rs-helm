@@ -1,0 +1,12 @@
+ticket_server_addr = "127.0.0.1:8080"
+data_server_enabled = false
+
+[[resolvers]]
+regex = '.*'
+substitution_string = '$0'
+
+[resolvers.storage]
+bucket = "data"
+endpoint = "http://minio.minio.svc.cluster.local:9000"
+path_style = true
+
