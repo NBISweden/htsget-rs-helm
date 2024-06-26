@@ -170,9 +170,18 @@ htsget:
     localPath: ""
     # Data can be mounted to the local path via an existing persistent volume claim
     existingClaim: ""
-    # For a nfs volume there is also the option to set the configuration below instead of using a persistent volume claim
+    # For a nfs volume there is also the option to set the configuration below instead of using a persistent volume claim.
     nfsServer: ""
     nfsPath: ""
+  s3Storage:
+    enabled: false
+    region: ""
+    # S3 access_key_id and secret_access_key credentials
+    user: ""
+    password: ""
+    # The above credentials will be read from an existing secret if it has .data.user and
+    # .data.password fields and its secretName is set below.
+    secretName: ""
 
 # The htsget-rs server is configured by placing the contents of the toml config file below (keep nindent 2).
 # All of the available configuration options (https://github.com/umccr/htsget-rs/tree/crypt4gh/htsget-config)

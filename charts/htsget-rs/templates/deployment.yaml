@@ -51,6 +51,27 @@ spec:
             value: {{ default "Full" .Values.htsget.formattingStyle }}
           - name: RUST_LOG
             value: {{ default "info" .Values.htsget.rustLog }}
+          {{- if .Values.htsget.s3Storage.enabled }}
+          - name:  AWS_REGION
+            value: {{ required "An AWS region is required" .Values.htsget.s3Storage.region | quote}}
+          {{- if .Values.htsget.s3Storage.secretName }}
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ required "A secret for AWS access key id is required" .Values.htsget.s3Storage.secretName }}
+                key: user
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ required "A secret for AWS secret access key is required" .Values.htsget.s3Storage.secretName }}
+                key: password
+          {{- else }}
+          - name: AWS_ACCESS_KEY_ID
+            value: {{ required "An AWS access key id is required" .Values.htsget.s3Storage.user | quote }}
+          - name: AWS_SECRET_ACCESS_KEY
+            value: {{ required "An AWS secret access key is required" .Values.htsget.s3Storage.password | quote}}
+          {{- end }}
+          {{- end }}
           ports:
             - name: htsget
               containerPort: {{ .Values.service.port }}
@@ -80,7 +101,7 @@ spec:
               readOnly: true
             {{- if .Values.c4gh.predefined }}
             - name: c4gh
-              mountPath: {{ required "A path for c4gh keys is required" .Values.htsget.c4ghPath | quote}}
+              mountPath: {{ required "A path for c4gh keys is required" .Values.htsget.c4ghPath | quote }}
               readOnly: true
             {{- end }}
             {{- if .Values.tls.enabled}}
@@ -90,12 +111,12 @@ spec:
             {{- end }}
             {{- if .Values.tlsClient.enabled }}
             - name: client-certs
-              mountPath: {{ required "A path for client TLS certificates is required" .Values.htsget.tlsPathClient | quote}}
+              mountPath: {{ required "A path for client TLS certificates is required" .Values.htsget.tlsPathClient | quote }}
               readOnly: true
             {{- end }}
             {{- if .Values.tlsDataServer.enabled }}
             - name: data-server-certs
-              mountPath: {{ required "A path for data server TLS certificates is required" .Values.htsget.tlsPathDataServer | quote}}
+              mountPath: {{ required "A path for data server TLS certificates is required" .Values.htsget.tlsPathDataServer | quote }}
               readOnly: true
             {{- end }}
             {{- if and .Values.htsget.dataServer.enabled .Values.htsget.dataServer.localPath }}
