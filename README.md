@@ -102,12 +102,18 @@ The following table lists the parameters of the htsget-rs chart that are specifi
 | `tlsClient.enabled` | Enable TLS for the client. Set to `true` if `tls` parameters are set under the `[resolvers.storage.endpoints]` of the `toml` config.  | `false` |
 | `tlsClient.secretName` | Name of the secret containing the TLS certificates for the client | `""` |
 | `htsget.tlsPathClient` | Path where the TLS certificates for the client are mounted in the pod container| `""` |
+| `htsget.s3Storage.enabled` | Set to `true` if htsget is configured to use S3 storage | `false` |
+| `htsget.s3Storage.region` | AWS region of the S3 storage backend | `""` |
+| `htsget.s3Storage.user` | AWS S3 access key id | `""` |
+| `htsget.s3Storage.password` | AWS S3 secret access key | `""` |
+| `htsget.s3Storage.secretName` | Existing secret holding the above two S3 credentials in `.data.user` and `.data.password` fields | `""` |
 | `htsget.rustLog` | Rust log level | `"info"` |
 | `htsget.formattingStyle` | Formatting style for the rust logs | `"Pretty"` |
 
 ### Example configurations
 
 Further examples of how to configure the `htsget-rs` deployment can be found Under `.github/integration/scripts/`. The `values.yaml` file inside this directory  presents an example configuration for deploying `htsget-rs` in a `url storage` backend configuration with `crypt4gh` encryption and `TLS` features enabled.
-The `data-server-config.toml` has a configuration example for deploying htsget with the `data server` enabled and running in `local storage` mode where data are held by a local storage backend. Note that all examples are for illustrative purposes and not recommended for production deployments without further administrative considerations.
+The `data-server-config.toml` has a configuration example for deploying htsget with the `data server` enabled and running in `local storage` mode where data are held by a local storage backend. Lastly, the `s3-backend-config.toml` has a configuration example for deploying htsget with S3 as storage backend that holds files in a bucket named `data`.
+Note that all examples are for illustrative purposes and not recommended for production deployments without further administrative considerations.
 
 For further details of how to configure the `htsget-rs` server, please refer to the [htsget-rs configuration documentation](https://github.com/umccr/htsget-rs/tree/main/htsget-config) and the examples therein.
