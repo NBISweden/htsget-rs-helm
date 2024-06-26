@@ -68,4 +68,34 @@ jobs:
             sleep 1
             echo "## logs htsget" && kubectl logs -l role="htsget"
             sleep 1
+
+          if [ ${{matrix.mode}} == "s3storage" ] && [ ${{matrix.tls}} == "false" ]; then
+            echo "## testing functionality of s3storage"
+            statusCode=$(curl http://htsget.local/reads/bam/htsnexus_test_NA12878 -i -o /dev/null -w '%{http_code}\n' -s)
+            if [ $statusCode -ne 200 ]; then
+              echo "htsget failed with status code $statusCode"
+              exit 1
+            else
+              echo "test succeeded"
+            fi
+          fi
+
+          if [ ${{matrix.mode}} == "dataserver" ] && [ ${{matrix.tls}} == "false" ]; then
+            echo "## testing functionality of ticket server with local storage"
+            statusCode=$(curl http://htsget.local/reads/bam/htsnexus_test_NA12878 -i -o /dev/null -w '%{http_code}\n' -s)
+            if [ $statusCode -ne 200 ]; then
+              echo "htsget failed with status code $statusCode"
+              exit 1
+            else
+              echo "test succeeded"
+            fi
+            echo "## testing download from local dataserver"
+            statusCode=$(curl http://data-server.local/bam/htsnexus_test_NA12878.bam -i -o /dev/null -w '%{http_code}\n' -s)
+            if [ $statusCode -ne 200 ]; then
+              echo "download from htsget data server failed with status code $statusCode"
+              exit 1
+            else
+              echo "test succeeded"
+            fi
+          fi
         shell: bash
