@@ -18,8 +18,11 @@ k3d kubeconfig merge sda --kubeconfig-switch-context
 mkdir -p ~/.kube/ && cp ~/.config/kubeconfig-sda.yaml ~/.kube/config
 
 until kubectl -n kube-system get svc traefik -o jsonpath='{..ingress[0].ip}' 2> /dev/null; do
-    sleep 1
+    sleep 5
 done
-clusterIP=$(kubectl -n kube-system get svc traefik -o jsonpath='{..ingress[0].ip}')
+until [ -n "$clusterIP" ]; do
+    clusterIP=$(kubectl -n kube-system get svc traefik -o jsonpath='{..ingress[0].ip}')
+    sleep 5
+done
 
 echo -e  "$clusterIP htsget.local\n$clusterIP data-server.local\n$clusterIP minio-example.local\n" | sudo tee -a /etc/hosts
