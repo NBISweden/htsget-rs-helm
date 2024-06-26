@@ -22,5 +22,4 @@ until kubectl -n kube-system get svc traefik -o jsonpath='{..ingress[0].ip}' 2> 
 done
 clusterIP=$(kubectl -n kube-system get svc traefik -o jsonpath='{..ingress[0].ip}')
 
-echo -e  "$clusterIP htsget.local\n" | sudo tee -a /etc/hosts
-echo -e  "$clusterIP data-server.local\n" | sudo tee -a /etc/hosts
+echo -e  "$clusterIP htsget.local\n$clusterIP data-server.local\n$clusterIP minio-example.local\n" | sudo tee -a /etc/hosts
