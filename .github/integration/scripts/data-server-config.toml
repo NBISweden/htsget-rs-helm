@@ -12,10 +12,6 @@ data_server_tls.key = "/tlsDataServer/tls.key"
 regex = ".*"
 substitution_string = "$0"
 
-# # [[resolvers]]
-# # regex = "(.*)"
-# # substitution_string = "$1"
-
 # If dataServer.ingress.enabled is set to true, a way to return the correct url to the client
 # is to use the configuration below.
 [resolvers.storage]
