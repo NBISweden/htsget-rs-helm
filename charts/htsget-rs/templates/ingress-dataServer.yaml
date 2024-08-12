@@ -1,0 +1,57 @@
+{{- /*
+Ingress resource for the data server.
+*/ -}}
+{{- if and .Values.htsget.dataServer.enabled .Values.dataServer.ingress.enabled }}
+{{- $fullName := include "htsget-rs.fullname" . -}}
+{{- $svcPort := .Values.dataServer.service.port -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-data-server
+  labels:
+    {{- include "htsget-rs.labels" . | nindent 4 }}
+  annotations:
+    {{- if eq "nginx" .Values.ingress.className }}
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    nginx.ingress.kubernetes.io/backend-protocol: "{{ ternary "HTTPS" "HTTP" .Values.tlsDataServer.enabled }}"
+    {{- end }}
+    {{- if .Values.dataServer.ingress.clusterIssuer }}
+    cert-manager.io/cluster-issuer: {{ .Values.dataServer.ingress.clusterIssuer | quote }}
+    {{- else if .Values.dataServer.ingress.issuer }}
+    cert-manager.io/issuer: {{ .Values.dataServer.ingress.issuer | quote }}
+    {{- end }}
+{{- if .Values.dataServer.ingress.annotations }}
+{{ toYaml .Values.dataServer.ingress.annotations | indent 4 }}
+{{- end }}
+spec:
+  {{- if .Values.dataServer.ingress.className }}
+  ingressClassName: {{ .Values.dataServer.ingress.className }}
+  {{- end }}
+  {{- if .Values.dataServer.ingress.tls }}
+  tls:
+    {{- range .Values.dataServer.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.dataServer.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            {{- if .pathType }}
+            pathType: {{ .pathType }}
+            {{- end }}
+            backend:
+              service:
+                name: {{ $fullName }}-data-server
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
+    {{- end }}
+{{- end }}

@@ -1,0 +1,16 @@
+1. The application ticket server can be reached from the URL:
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.dataServer.ingress.enabled .Values.htsget.dataServer.enabled }}
+2. The application data server can be reached from the URL:
+{{- range $host := .Values.dataServer.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.dataServer.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- end }}

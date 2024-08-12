@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "htsget-rs.fullname" . }}-config
+data:
+  config.toml: |-
+{{- required "Htsget-rs configuration is required" .Values.configMapData | nindent 4 }}
