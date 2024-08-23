@@ -1,0 +1,20 @@
+apiVersion: v1
+entries:
+  htsget-rs:
+  - apiVersion: v2
+    appVersion: "20240430"
+    created: "2024-08-23T14:22:00.540515579Z"
+    description: A server implementation of the htsget protocol for bioinformatics
+      in Rust.
+    digest: 0e89bf8a4f8fc447b0d5e7bc572e290ebd9012dcd3846070e655b51f877711b4
+    home: https://github.com/umccr/htsget-rs/
+    kubeVersion: ^1.19.0-0
+    name: htsget-rs
+    sources:
+    - https://github.com/umccr/htsget-rs/
+    - https://github.com/NBISweden/htsget-rs-helm
+    type: application
+    urls:
+    - https://github.com/NBISweden/htsget-rs-helm/releases/download/htsget-rs-0.1.0/htsget-rs-0.1.0.tgz
+    version: 0.1.0
+generated: "2024-08-23T14:22:00.540525017Z"
